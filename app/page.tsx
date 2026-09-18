@@ -92,7 +92,7 @@ export default function Home() {
           ))}
         </div>
       </main>
-      <footer> This site is developed by Rikky J</footer>
+      <footer style={{ display:"inline-flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }} > This site is developed by Rikky J</footer>
     </>
   );
 }
