@@ -1,15 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import Card from "./_components/ProjectCard";
-import projects from "./data/projects.json";
+import initialProjects from "./data/projects.json";
+
+interface Project {
+  id: number;
+  name: string;
+  taskCount: number;
+}
 
 function Navbar() {
   return (
     <header className="header">
       <nav className="navbar">
         <div className="navbar-logo">
-          <a href="/">DevBoard</a>
+          <Link href="/">DevBoard</Link>
+        </div>
+        <div className="nav-actions">
+          <Link href="/addproject" className="btn-primary">
+            + Add Project
+          </Link>
         </div>
       </nav>
     </header>
@@ -17,9 +29,23 @@ function Navbar() {
 }
 
 export default function Home() {
+  const [projectList, setProjectList] = useState<Project[]>(initialProjects);
   const [startedProjects, setStartedProjects] = useState<number[]>([]);
 
-  const totalProjects = projects.length;
+  useEffect(() => {
+    fetch("/api/projects")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.data)) {
+          setProjectList(data.data);
+        }
+      })
+      .catch(() => {
+        // Fallback to initialProjects
+      });
+  }, []);
+
+  const totalProjects = projectList.length;
   const inProgressProjects = startedProjects.length;
 
   const toggleProject = (projectId: number) => {
@@ -35,30 +61,38 @@ export default function Home() {
     <>
       <Navbar />
 
-      <h1>Welcome</h1>
-      <h2>Projects</h2>
+      <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "1.5rem" }}>
+        <h1>Welcome</h1>
+        <h2>Projects</h2>
 
-      <h3>
-        {totalProjects} projects · {inProgressProjects} in progress
-      </h3>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+          <h3 style={{ margin: 0 }}>
+            {totalProjects} projects · {inProgressProjects} in progress
+          </h3>
+          <Link href="/addproject" className="btn-primary" style={{ display: "inline-block" }}>
+            + Add Project
+          </Link>
+        </div>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "16px",
-          flexWrap: "wrap",
-        }}
-      >
-        {projects.map((project) => (
-          <Card
-            key={project.id}
-            name={project.name}
-            taskCount={project.taskCount}
-            isStarted={startedProjects.includes(project.id)}
-            onToggle={() => toggleProject(project.id)}
-          />
-        ))}
-      </div>
+        <div
+          style={{
+            display: "flex",
+            gap: "16px",
+            flexWrap: "wrap",
+          }}
+        >
+          {projectList.map((project) => (
+            <Card
+              key={project.id}
+              name={project.name}
+              taskCount={project.taskCount}
+              isStarted={startedProjects.includes(project.id)}
+              onToggle={() => toggleProject(project.id)}
+            />
+          ))}
+        </div>
+      </main>
+      <footer> This site is developed by Rikky J</footer>
     </>
   );
 }
